@@ -1,4 +1,5 @@
 #include <M5StickCPlus.h>
+#include<ESP32Servo.h>
 
 #define SERIAL_BAUDRATE 9600
 #define SERIAL1_BAUDRATE 9600
@@ -10,14 +11,16 @@ int range_yellow = MAX_DAMAGE / 3;
 int range_orange = MAX_DAMAGE * 2 / 3 ;
 int range_red = MAX_DAMAGE;
 
+//#define BUZZER 2
+#define VIBE 32
 #define SWITCH 33
 
 int switch_value;
 int role;
 int damage = 0;
 
-//float life_point = 43500;
 int r, g;
+//rgbで指定するためのもの↓
 uint16_t getColor(uint8_t red, uint8_t green, uint8_t blue) {
   return ((red >> 3) << 11) | ((green >> 2) << 5) | (blue >> 3);
 }
@@ -26,8 +29,14 @@ void setup() {
   Serial.begin(SERIAL_BAUDRATE);
   Serial1.begin(SERIAL1_BAUDRATE);
   M5.begin();
-  pinMode(SWITCH, INPUT);
-  //  pinMode(GPIO_NUM_37, INPUT_PULLUP);
+  
+//  pinMode(BUZZER, OUTPUT);
+//  ESP32PWM::allocateTimer(0);
+//  ESP32PWM::allocateTimer(1);
+//  ESP32PWM::allocateTimer(2);
+//  ESP32PWM::allocateTimer(3);
+  pinMode(VIBE, OUTPUT);
+  pinMode(SWITCH, INPUT); 
   esp_sleep_enable_ext0_wakeup(GPIO_NUM_33, HIGH);
 }
 
@@ -61,11 +70,14 @@ void loop() {
     M5.Lcd.println(r);
     M5.Lcd.println(g);
 
+    digitalWrite(VIBE,LOW);
+
     if ( M5.BtnA.isPressed() ) {
-      //      life_point = life_point - DAMAGE;
+      //模擬受信
       if (damage < range_red) {
         damage = damage + 5;
       }
+      digitalWrite(VIBE, HIGH);
     }
 
     //ライフポイントの残量によるrgbの制御
@@ -75,8 +87,7 @@ void loop() {
     }
     if (damage > range_yellow && damage <= range_red) {
       r = RGB_COLOR;
-      g = (-RGB_COLOR) * damage / range_orange
-          + RGB_COLOR * range_red / range_orange;
+      g = (-RGB_COLOR) * damage / range_orange + RGB_COLOR * range_red / range_orange;
     }
 
     M5.Lcd.fillRect(0, 100, 100, 100, getColor(r, g, 0));
@@ -94,5 +105,4 @@ void loop() {
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setCursor(0, 0);
 
-  //  delay(100);
 }
