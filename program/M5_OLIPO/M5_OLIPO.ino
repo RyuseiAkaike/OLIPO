@@ -1,5 +1,5 @@
 #include <M5StickCPlus.h>
-#include<ESP32Servo.h>
+//#include<ESP32Servo.h>
 
 #define SERIAL_BAUDRATE 9600
 #define SERIAL1_BAUDRATE 9600
@@ -11,7 +11,7 @@ int range_yellow = MAX_DAMAGE / 3;
 int range_orange = MAX_DAMAGE * 2 / 3 ;
 int range_red = MAX_DAMAGE;
 
-//#define BUZZER 2
+#define BUZZER 2
 #define VIBE 32
 #define SWITCH 33
 
@@ -29,20 +29,24 @@ void setup() {
   Serial.begin(SERIAL_BAUDRATE);
   Serial1.begin(SERIAL1_BAUDRATE);
   M5.begin();
-  
-//  pinMode(BUZZER, OUTPUT);
-//  ESP32PWM::allocateTimer(0);
-//  ESP32PWM::allocateTimer(1);
-//  ESP32PWM::allocateTimer(2);
-//  ESP32PWM::allocateTimer(3);
+
+  //  pinMode(BUZZER, OUTPUT);
+  //  ESP32PWM::allocateTimer(0);
+  //  ESP32PWM::allocateTimer(1);
+  //  ESP32PWM::allocateTimer(2);
+  //  ESP32PWM::allocateTimer(3);
   pinMode(VIBE, OUTPUT);
-  pinMode(SWITCH, INPUT); 
+  pinMode(SWITCH, INPUT);
+  pinMode(BUZZER, OUTPUT);
   esp_sleep_enable_ext0_wakeup(GPIO_NUM_33, HIGH);
 }
 
 void loop() {
   M5.update();
   switch_value = analogRead(SWITCH);
+
+  ledcSetup(BUZZER, 12000, 8);
+  ledcAttachPin(BUZZER, 2);
 
   if (switch_value < 200) {
     //スリープ、液晶オフ
@@ -70,7 +74,9 @@ void loop() {
     M5.Lcd.println(r);
     M5.Lcd.println(g);
 
-    digitalWrite(VIBE,LOW);
+    digitalWrite(VIBE, LOW);
+
+
 
     if ( M5.BtnA.isPressed() ) {
       //模擬受信
@@ -78,6 +84,14 @@ void loop() {
         damage = damage + 5;
       }
       digitalWrite(VIBE, HIGH);
+      ledcWriteTone(2, 440);
+      delay(10);
+      //    for (int i = 0; i < 80; i++) {
+      //      digitalWrite(BUZZER, HIGH);
+      //      delay(1);   // 1ミリ秒待機
+      //      digitalWrite(BUZZER, LOW);
+      //      delay(1);   // 1ミリ秒待機
+      //    }
     }
 
     //ライフポイントの残量によるrgbの制御
